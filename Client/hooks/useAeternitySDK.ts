@@ -14,10 +14,10 @@ import network from '../configs/network';
  * æternitySDK Hook
  *
  */
-const enum SUBSCRIPTION_TYPES {
-    subscribe = "subscribe",
-    unsubscribe = "unsubscribe"
-}
+// const enum SUBSCRIPTION_TYPES {
+//     subscribe = "subscribe",
+//     unsubscribe = "unsubscribe"
+// }
 
 const useAeternitySDK = () => {
 	
@@ -56,7 +56,7 @@ const useAeternitySDK = () => {
     });
 
     await aeSdk.connectToWallet(await wallet.getConnection());
-    await aeSdk.subscribeAddress(SUBSCRIPTION_TYPES.subscribe, 'current');
+    // await aeSdk.subscribeAddress(SUBSCRIPTION_TYPES.subscribe, 'current');
     // TODO: remove after releasing https://github.com/aeternity/aepp-sdk-js/issues/1802
     aeSdk.onAddressChange({ current: { [aeSdk.address]: {} }, connected: {} });
 	// console.log('bbbbb',b);

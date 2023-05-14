@@ -4,11 +4,11 @@ import styles from "../styles/Home.module.css";
 import MyDAO from "./myDAO/index"
 
 
-const WalletConnectionStatus = Object.freeze({
-	Error: 0,
-	Connecting: 1,
-	Connected: 2,
-});
+// const WalletConnectionStatus = Object.freeze({
+// 	Error: 0,
+// 	Connecting: 1,
+// 	Connected: 2,
+// });
 
 export default function Home() {
 //   const { aeSdk, address, networkId, connectToWallet } = useAeternitySDK();
