@@ -4,13 +4,40 @@ import { RiAddLine, RiPencilLine } from "react-icons/ri";
 import { Header } from "../../components/Header";
 import { Pagination } from "../../components/Pagination";
 import { Sidebar } from "../../components/Sidebar";
-
-
+import { AE_AMOUNT_FORMATS } from '@aeternity/aepp-sdk';
+import useAeternitySDK from '../../hooks/useAeternitySDK';
+import network from "../../configs/network";
+import {useEffect, useState } from "react";
+import { useWalletProvider } from "../../contexts/WalletProviderContext";
+import { _fetchData } from "ethers/lib/utils";
 
 export default function UserList() {
-
   // console.log(isLoading?'1':data[0])
+  const [isLoading, setIsLoading] = useState(false);
+  const [daoData, setDaoData] = useState([]);
+  const {factoryContract, savedSDK: aeSdk, readOnlyFactoryContract} = useWalletProvider();
 
+  useEffect(()=>{
+    console.log("Im here")
+  })
+  
+  useEffect(()=>{
+    const fetchData = async () =>{
+      console.log('hi')
+      const allInfo = await readOnlyFactoryContract.getAlldaoData()
+      console.log(allInfo.decodedResult)
+      setDaoData(allInfo.decodedResult)
+    }
+    if(readOnlyFactoryContract == null) return;
+    fetchData()
+  }, [factoryContract, readOnlyFactoryContract])
+
+  // daoData?.map((dao, index) => (
+  //   console.log(dao[1])
+  // ))
+
+  const truncatedAddress = (addr) => addr.slice(0, 6) + "..." + addr.slice(-4);
+  const trunctaedDescription = (desc) => desc.slice(0, 20);
 
   return (
     <Box>
@@ -43,39 +70,39 @@ export default function UserList() {
                 <Th>ID</Th>
                 <Th>Description</Th>
                 <Th>Token Address</Th>
-                {/* <Th>Founder</Th> */}
-                <Th width="8"></Th>
+                <Th>DAO Address</Th>
+                <Th width="8">Actions</Th>
               </Tr>
             </Thead>
 
 
-            {/* <Tbody>
-              { data?.map((dao, index) => (
+            <Tbody>
+              { daoData?.map((dao, index) => (
               <Tr key={index}>
                 <Td>
                   <Box>
-                    <Text fontWeight="bold">{dao.name}</Text>
+                    <Text fontWeight="bold">{dao[1]?.name}</Text>
                   </Box>
                 </Td>
                 <Td>
-                    <Text fontWeight="bold">{dao.id.toNumber()}</Text>
+                    <Text fontWeight="bold">{Number(dao[1]?.id)}</Text>
                 </Td>
                 <Td>
-                    <Text fontWeight="bold">{dao.description_cid}</Text>
+                    <Text fontWeight="bold">{trunctaedDescription(dao[1]?.description)}</Text>
                 </Td>
                 <Td>
-                    <Text fontWeight="bold">{dao.TokenAddress}</Text>
+                    <Text fontWeight="bold">{truncatedAddress(dao[1]?.daoTokenAdress.toString())}</Text>
                 </Td>
                 <Td>
-                    <Text fontWeight="bold">{dao.owner.substring(0, 6)}...{dao.owner.substring(dao.owner.length - 4)}</Text>
+                    <Text fontWeight="bold">{truncatedAddress(dao[0]?.toString())}</Text>
                 </Td>
                 <Td>
-                <Link href={"/daoPage/[id]"} as={`/daoPage/${dao.id.toNumber()}`}>
-                <Button backgroundColor={'green.400'}>Join</Button>
+                <Link href={"/daoPage/[id]"} as={`/daoPage/${dao[0]}`}>
+                <Button backgroundColor={'green.400'}>View</Button>
                 </Link>
                 </Td>
               </Tr>))}
-              </Tbody> */}
+              </Tbody>
           </Table>
           <Pagination />
         </Box>

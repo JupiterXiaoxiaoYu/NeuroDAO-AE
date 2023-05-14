@@ -1,6 +1,6 @@
 import { Button, Card, CardBody, CardFooter, Flex, Heading, Text } from "@chakra-ui/react";
 
-function ProposalCard({ tokenAddress, totalDeposit, plannedBuyTime, plannedSellTime, decisionStagePeriod, onFund, onVote, totalFunds, currentStage }) {
+function ProposalCard({ tokenAddress, totalDeposit, plannedBuyTime, plannedSellTime, decisionStagePeriod, onFund, onVote, totalFunds, currentStage, onDetails }) {
   return (
     <Card borderWidth="1px" borderRadius="md" boxShadow="md" maxW="sm">
       <CardBody>
@@ -32,6 +32,9 @@ function ProposalCard({ tokenAddress, totalDeposit, plannedBuyTime, plannedSellT
       </CardBody>
       <CardFooter>
         <Flex justifyContent="space-around" flex={1}>
+        <Button onClick={onDetails} colorScheme="cyan">
+            Details
+          </Button>
           <Button onClick={onFund} colorScheme="green">
             Fund
           </Button>

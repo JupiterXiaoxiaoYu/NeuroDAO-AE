@@ -4,15 +4,15 @@ import React, { createContext, useState, useEffect } from 'react';
 import { AE_AMOUNT_FORMATS } from '@aeternity/aepp-sdk';
 import useAeternitySDK from '../../hooks/useAeternitySDK';
 import network from "../../configs/network";
+import NeuroDAOFactoryACI from '../../pages/acis/NeuroDAOFactory.json'
 
 const ConnectWalletButton = () => {
-  const [walletInfo, setWalletInfo] = useWalletProvider();
+  const {walletInfo, setWalletInfo, setFactoryContract, setSavedSDK, setConnectToWalletFirst} = useWalletProvider();
   const { aeSdk, address, networkId, connectToWallet } = useAeternitySDK();
-
-  const [balance, setBalance] = useState<string>('loading...');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string | undefined>();
-
+  // setConnectToWalletFirst(async ()=>{connectToAE()})
+  
   const connect = async () => {
     setIsLoading(true);
     setMessage('Searching for Wallet ...');
@@ -39,27 +39,25 @@ const ConnectWalletButton = () => {
         return;
       }
       setMessage(undefined);
-      setBalance(0);
-      console.log('----',address)
-      try{
-        const _balance = await aeSdk.getBalance(address, { format: "ae" });
-        setBalance(_balance);
-      }catch(e){
-        console.log(e)
-      }
-      // console.log('balance', _balance)
+
+
+      const _balance = await aeSdk.getBalance(address, { format: "ae" });
+      const factory = await aeSdk.initializeContract({ aci:NeuroDAOFactoryACI, address: 'ct_2CDnNaKBMX2t3PtSmvjBXE95sPRNvsCi1xwZaASH7WYdeBkXrC'})
+      setFactoryContract(factory)
+      setWalletInfo({ balance: _balance, address: address, networkId: networkId })
+      console.log('balance', aeSdk)
+      setSavedSDK(aeSdk)
       
     })();
 
-  }, [address, aeSdk, networkId]);
+  }, [address, aeSdk, networkId, setFactoryContract, setSavedSDK, setWalletInfo]);
 
-  useEffect(() => {
-    console.log(balance)
-    setWalletInfo({ balance: balance, address: address, networkId: networkId })
-  }, [address, balance, networkId, setWalletInfo])
+  // useEffect(() => {
+  //   console.log(balance)
+    
+  // }, [address, balance, networkId, setWalletInfo])
 
   const connectToAE = async () => {
-
     await connect()
   };
 

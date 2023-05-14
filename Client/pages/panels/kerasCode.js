@@ -1,6 +1,6 @@
 export class network {
-    constructor() {
-        this.arrLayers = [new layer(3, 'relu', false, true, 'uniform'), new layer(6, 'relu', false, true, 'uniform'), new layer(4, 'relu', false, true, 'uniform')];
+    constructor(arrLayers=[new layer(3, 'relu', false, true, 'uniform'), new layer(6, 'relu', false, true, 'uniform'), new layer(4, 'relu', false, true, 'uniform')]) {
+        this.arrLayers = arrLayers
         this.optimizer = "SGD";
         this.learnRate = 0.01;
         this.loss = "Mean Squared Error";
@@ -8,6 +8,17 @@ export class network {
         // this.batchSize = 32;
         // this.learningRateDecay = false; 
     }
+
+    // constructor(numOfLayer, inputNum, outputNum, hiddenNum) {
+    //     this.arrLayers = [new layer(3, 'relu', false, true, 'uniform'), new layer(6, 'relu', false, true, 'uniform'), new layer(4, 'relu', false, true, 'uniform')];
+    //     this.optimizer = "SGD";
+    //     this.learnRate = 0.01;
+    //     this.loss = "Mean Squared Error";
+    //     // this.epochs = 100;
+    //     // this.batchSize = 32;
+    //     // this.learningRateDecay = false; 
+    // }
+
 
 
     copy(old_network){

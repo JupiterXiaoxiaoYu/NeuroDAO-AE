@@ -6,7 +6,7 @@ import React, { useContext } from 'react';
 import ConnectWalletButton from "./ConnectWalletButton";
 
 export const Profile = () => {
-  const [walletInfo, setWalletInfo] = useWalletProvider();
+  const {walletInfo, setWalletInfo} = useWalletProvider();
   const { address, balance, networkId } = walletInfo;
   // const address = walletInfo.address;
   // const balance = walletInfo.balance;

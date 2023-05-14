@@ -7,10 +7,15 @@ import { Sidebar } from "../../components/Sidebar";
 //import {NetworkGraph} from "./ModelPanel.js"
 import { useRouter } from 'next/router';
 import { Box, Divider, Flex, Alert, AlertIcon, AlertDescription, CloseButton, AlertTitle, useDisclosure } from "@chakra-ui/react";
+import { useWalletProvider } from '../../contexts/WalletProviderContext';
+import useAeternitySDK from '../../hooks/useAeternitySDK';
 
 const DaoPage = ({ appState}) => {
     const router = useRouter();
-
+    const { factoryContract, savedSDK, readOnlyFactoryContract, setReadOnlyDaoContractWithSDK, readOnlyDaoContract, walletInfo } = useWalletProvider()
+    const { aeSDK } = useAeternitySDK()
+    const [neuroData, setNeuroData] = useState({})
+    const [isLoading, setIsLoading] = useState(false)
     const [state, setState] = useState({
         id: router.query.id,
         ...appState,
@@ -29,8 +34,9 @@ const DaoPage = ({ appState}) => {
         coloredNode: undefined,
         promptStatus: 'success',
         propmtDescription: 'Your DAO has been created!',
-        contractAddress: '',
+        contractAddress: router.query.id,
         contract: undefined,
+        readOnlyContract: undefined,
         tokenBalance: 0,
         doSetDAOName: new_name => setState(prevState => ({ ...prevState, DAOName: new_name })),
         doSetTokenName: new_name => setState(prevState => ({ ...prevState, TokenName: new_name })),
@@ -47,6 +53,7 @@ const DaoPage = ({ appState}) => {
         doSetNumNodes: (layer, new_nodes) => doSetNumNodes(layer, new_nodes),
         doSetLearnRate: (new_learn) => doSetLearnRate(new_learn),
         updateTokenBalance: () => updateTokenBalance(),
+        doSetContract: (new_contract) => doSetContract(new_contract),
         // doSetEpochs: (new_epochs) => doSetEpochs(new_epochs),
         // doSetBatchSize: (new_batch) => doSetBatchSize(new_batch),
         doSetLoss: (new_loss) => doSetLoss(new_loss),
@@ -58,7 +65,47 @@ const DaoPage = ({ appState}) => {
         setState({...state, id: router.query.id})
     }, [])
 
-    const { data: contractAddressdata, isLoading: isContractAddressDataLoading, error } = useContractRead(contract, "contracts", [state.id?.toString()])
+    useEffect(()=>{
+        const setContract = async () =>{
+            console.log('hicontract')
+            const readOnlyDAO = await setReadOnlyDaoContractWithSDK(router.query.id.toString().replace('ak_', 'ct_'))
+            // console.log(readOnlyDAO)
+            const data = await readOnlyDAO.getNeuralNetworkInfo()
+            const neuro = data.decodedResult
+            setNeuroData(data.decodedResult)
+            console.log(neuro)
+            let arrayLayers = []
+            arrayLayers.push(new layer(Number(neuro.inputNodesNum), 'relu', false, true, 'uniform')) 
+            arrayLayers.push(new layer(Number(neuro.hiddenNodesNum), 'relu', false, true, 'uniform')) 
+            arrayLayers.push(new layer(Number(neuro.outputNodesNum), 'relu', false, true, 'uniform')) 
+            console.log(arrayLayers)
+            setState({...state, network: new network(arrayLayers), readOnlyContract: readOnlyDAO})
+            state.hideModelPanel()
+          }
+          setContract()
+    }, [router.query.id])
+
+
+    useEffect(()=>{
+        const updateDaoTokenBalance = async() =>{
+            const daoTokenBalance = await state.readOnlyContract.getDAOTokenBalance(walletInfo.address)
+            console.log('DAO Token Balance',Number(daoTokenBalance.decodedResult))
+            setState({...state, tokenBalance: Number(daoTokenBalance.decodedResult)/10**18})
+        }
+        if(savedSDK)
+        updateDaoTokenBalance()
+    }, [savedSDK])
+
+    // useEffect(()=>{
+    //     const fetchData = async () =>{
+    //         console.log('hidata')
+            
+            
+    //     }
+    //     fetchData()
+    // }, [readOnlyDaoContract])
+
+    // const { data: contractAddressdata, isLoading: isContractAddressDataLoading, error } = useContractRead(contract, "contracts", [state.id?.toString()])
 
     // useEffect(() => {
     //     if(!isContractAddressDataLoading){
@@ -67,40 +114,40 @@ const DaoPage = ({ appState}) => {
     //     }
     // }, [isContractAddressDataLoading])
 
-    useEffect(() => {
-        async function getContract(){
-        if(!isContractAddressDataLoading){
-            const DAOContract = await sdk.getContract(
-                contractAddressdata.toString(), // The address of your smart contract
-                abi, // The ABI of your smart contract
-            );
-            const DAOtokenAddress = await DAOContract.call("DAOtokenAddress")
-            const DAOtokenContract = await sdk.getContract(
-                DAOtokenAddress, // The address of your smart contract
-                abi1, // The ABI of your smart contract
-            );
-            const address = await sdk.wallet.getAddress();
-            const balance = await DAOtokenContract.call("balanceOf", [address])
-            setState({...state, contract: DAOContract, contractAddress: contractAddressdata.toString(), tokenBalance: balance.toNumber()})
-        }
-    }
-    getContract()
-    }, [isContractAddressDataLoading])
+    // useEffect(() => {
+    //     async function getContract(){
+    //     if(!isContractAddressDataLoading){
+    //         const DAOContract = await sdk.getContract(
+    //             contractAddressdata.toString(), // The address of your smart contract
+    //             abi, // The ABI of your smart contract
+    //         );
+    //         const DAOtokenAddress = await DAOContract.call("DAOtokenAddress")
+    //         const DAOtokenContract = await sdk.getContract(
+    //             DAOtokenAddress, // The address of your smart contract
+    //             abi1, // The ABI of your smart contract
+    //         );
+    //         const address = await sdk.wallet.getAddress();
+    //         const balance = await DAOtokenContract.call("balanceOf", [address])
+    //         setState({...state, contract: DAOContract, contractAddress: contractAddressdata.toString(), tokenBalance: balance.toNumber()})
+    //     }
+    // }
+    // getContract()
+    // }, [isContractAddressDataLoading])
 
-    const getTokenBalance = async () => {
-        const DAOtokenAddress = await state.contract.call("DAOtokenAddress")
-        const DAOtokenContract = await sdk.getContract(
-            DAOtokenAddress, // The address of your smart contract
-            abi1, // The ABI of your smart contract
-        );
-        const balance = await DAOtokenContract.call("balanceOf")
-        return balance
-    }
+    // const getTokenBalance = async () => {
+    //     const DAOtokenAddress = await state.contract.call("DAOtokenAddress")
+    //     const DAOtokenContract = await sdk.getContract(
+    //         DAOtokenAddress, // The address of your smart contract
+    //         abi1, // The ABI of your smart contract
+    //     );
+    //     const balance = await DAOtokenContract.call("balanceOf")
+    //     return balance
+    // }
 
-    const updateTokenBalance = async () => {
-        const balance = await getTokenBalance()
-        setState({...state, tokenBalance: balance.toNumber()})
-    }
+    // const updateTokenBalance = async () => {
+    //     const balance = await getTokenBalance()
+    //     setState({...state, tokenBalance: balance.toNumber()})
+    // }
 
     // const sdk = useSDK();
 
@@ -133,6 +180,16 @@ const DaoPage = ({ appState}) => {
             }
         })
     }
+
+    const doSetContract = new_contract => {
+        setState(prevState => {
+            return {
+                ...prevState,
+                contract: new_contract
+            }
+        })
+    }
+
     const doSetLoss = new_loss => {
         let new_network = new network();
         new_network.copy(state.network);

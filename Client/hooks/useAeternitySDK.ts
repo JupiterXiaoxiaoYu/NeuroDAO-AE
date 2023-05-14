@@ -57,7 +57,6 @@ const useAeternitySDK = () => {
 	
 
   }, [aeSdk]);
-  	console.log(address,'Wallet connected');
 	return { aeSdk, connectToWallet, address, networkId };
 }
 

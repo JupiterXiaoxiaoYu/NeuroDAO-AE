@@ -22,7 +22,7 @@ const scanForWallets = () => {
 		const handleNewWallet = async ({ wallets, newWallet }) => {
 			newWallet = newWallet || Object.values(wallets)[0]
 			await aeSdk.connectToWallet(await newWallet.getConnection())
-			await aeSdk.subscribeAddress(SUBSCRIPTION_TYPES.subscribe, "current")
+			await aeSdk.subscribeAddress("subscribe", "current")
 			stopScan();
 			resolve(newWallet.info.networkId);
 		};
