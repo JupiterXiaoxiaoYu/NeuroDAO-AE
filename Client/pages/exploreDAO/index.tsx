@@ -9,7 +9,6 @@ import useAeternitySDK from '../../hooks/useAeternitySDK';
 import network from "../../configs/network";
 import {useEffect, useState } from "react";
 import { useWalletProvider } from "../../contexts/WalletProviderContext";
-import { _fetchData } from "ethers/lib/utils";
 
 export default function UserList() {
   // console.log(isLoading?'1':data[0])
