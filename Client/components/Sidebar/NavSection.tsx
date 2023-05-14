@@ -7,7 +7,7 @@ interface NavSectionProps {
   children: ReactNode
 }
 
-export function NavSection({title, children}) {
+export function NavSection({title, children}: { title: string, children: ReactNode }) {
   return (
     <Box>
       <Text fontWeight="bold" color="gray.400" fontSize="small">{title}</Text>

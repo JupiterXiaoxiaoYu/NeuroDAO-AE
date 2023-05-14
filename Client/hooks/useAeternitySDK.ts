@@ -6,6 +6,7 @@ import {
 	SUBSCRIPTION_TYPES,
 	walletDetector,
  } from '@aeternity/aepp-sdk';
+import { Any } from '@aeternity/aepp-sdk/es/utils/encoder-types';
 import { useState, useMemo, useCallback } from 'react';
 
 import network from '../configs/network';

@@ -7,7 +7,7 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "incremental": true,
@@ -15,14 +15,20 @@
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "isolatedModules": true
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
-    "**/*.tsx"
-, "components/Header/ConnectWalletButton.js"  ],
+    "**/*.tsx",
+    "components/Header/ConnectWalletButton.js",
+    "pages/exploreDAO/index.js",
+    "components/Header/Profile.js",
+    "components/Sidebar/NavSection.js",
+    "pages/myDAO/index.js",
+    "contexts/WalletProviderContext.js"
+  ],
   "exclude": [
     "node_modules"
   ]

@@ -6,7 +6,7 @@ import { NotificationNav } from "./NotificationsNav"
 import { Profile } from "./Profile"
 import { SearchBox } from "./SearchBox"
 
-export function Header({address, balance, networkId}) {
+export function Header() {
   const { onOpen } = useSidebarDrawer()
 
   const isWideVersion = useBreakpointValue({
