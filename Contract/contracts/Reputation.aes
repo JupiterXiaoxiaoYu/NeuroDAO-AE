@@ -1,0 +1,34 @@
+@compiler >= 6
+
+contract Reputation = 
+    record performance = {
+        reputationScore: int,
+        earnedToken: int,
+        lostToken: int
+        }
+    
+    record state ={
+        allMemberPerformance: map(address, map(address,performance)),
+        factoryAddress: address
+        }
+
+    entrypoint init(_factory: address): state = 
+        {
+            factoryAddress = _factory,
+            allMemberPerformance = {}
+            }
+
+    function factoryAddressOnly() = 
+        require(Call.caller == state.factoryAddress, "factoryAddressOnly")
+
+    stateful entrypoint addReputation(_DAO: address, _member: address, _earnedToken: int) = 
+        factoryAddressOnly()
+        put(state{allMemberPerformance[_DAO][_member].reputationScore @reputationScore = reputationScore + _earnedToken,
+            allMemberPerformance[_DAO][_member].earnedToken @earnedTokenBefore = earnedTokenBefore + _earnedToken
+            })
+    
+    stateful entrypoint subReputation(_DAO: address, _member: address, _lostToken: int) = 
+        factoryAddressOnly()
+        put(state{allMemberPerformance[_DAO][_member].reputationScore @reputationScore = reputationScore - _lostToken,
+            allMemberPerformance[_DAO][_member].lostToken @lostTokenBefore = lostTokenBefore + _lostToken
+            })
