@@ -7,7 +7,7 @@ import network from "../../configs/network";
 import NeuroDAOFactoryACI from '../../pages/acis/NeuroDAOFactory.json'
 
 const ConnectWalletButton = () => {
-  const {walletInfo, setWalletInfo, setFactoryContract, setSavedSDK, setConnectToWalletFirst} = useWalletProvider();
+  const {setWalletInfo, setFactoryContract, setSavedSDK} = useWalletProvider();
   const { aeSdk, address, networkId, connectToWallet } = useAeternitySDK();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string | undefined>();
