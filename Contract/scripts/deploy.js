@@ -6,6 +6,7 @@ const DAO_TEMPLATE = fs.readFileSync("../contracts/NeuroDAOFactory.aes", encodin
 // const keypair = generateKeyPair()
 // console.log(`Secret key: ${keypair.secretKey}`)
 // console.log(`Public key: ${keypair.publicKey}`)
+//for test only
 const SECRET_KEY = '377c4911de2201ed5101427e8a5415213caa4dc81b5a9ac8ddcf9d17d015880840dc31129f90dcfaa4e7c936ade86cedcfd6c849152a9ebbdf27de9371ee8fef';
 //ak_VZmMpkgg8EqRgVqaMtQBZ8vTFzp65QTrwCdKu2zFH3JfyrNt7
 (async () => {
