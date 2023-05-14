@@ -80,7 +80,7 @@ function SwapUI({ appState }) {
                             setOutputTokenAmount(event.target.value / 100);
                         }
                     }} />
-                    <InputRightElement children={<Box as="span" px="2" onClick={handleTokenSwap} cursor="pointer" _disabled={isLoading}>&#8646;</Box>} />
+                    <InputRightElement ><Box as="span" px="2" onClick={handleTokenSwap} cursor="pointer" _disabled={isLoading}>&#8646;</Box></InputRightElement>
                 </InputGroup>
             </FormControl>
             <FormControl mt={4}>
