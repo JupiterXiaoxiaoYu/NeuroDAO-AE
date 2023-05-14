@@ -3,7 +3,6 @@ import {
 	BrowserWindowMessageConnection,
 	Encoded,
 	Node,
-	SUBSCRIPTION_TYPES,
 	walletDetector,
  } from '@aeternity/aepp-sdk';
 import { Any } from '@aeternity/aepp-sdk/es/utils/encoder-types';
@@ -15,7 +14,13 @@ import network from '../configs/network';
  * æternitySDK Hook
  *
  */
+const enum SUBSCRIPTION_TYPES {
+    subscribe = "subscribe",
+    unsubscribe = "unsubscribe"
+}
+
 const useAeternitySDK = () => {
+	
 	const [address, setAddress] = useState<Encoded.AccountAddress | undefined>();
   	const [networkId, setNetworkId] = useState<string | undefined>();
 
@@ -51,7 +56,7 @@ const useAeternitySDK = () => {
     });
 
     await aeSdk.connectToWallet(await wallet.getConnection());
-    await aeSdk.subscribeAddress("subscribe", 'current');
+    await aeSdk.subscribeAddress(SUBSCRIPTION_TYPES.subscribe, 'current');
     // TODO: remove after releasing https://github.com/aeternity/aepp-sdk-js/issues/1802
     aeSdk.onAddressChange({ current: { [aeSdk.address]: {} }, connected: {} });
 	// console.log('bbbbb',b);

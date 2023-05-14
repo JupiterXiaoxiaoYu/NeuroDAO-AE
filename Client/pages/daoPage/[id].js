@@ -1,6 +1,6 @@
 import React, { Component, useEffect, useState } from 'react';
 import JSide from "./JSide.js";
-import { network, layer } from "../panels/kerasCode.js";
+import { network, layer } from "../../panels/kerasCode.js";
 import ModelPanel from "./ShowPanel.js"
 import { Header } from "../../components/Header";
 import { Sidebar } from "../../components/Sidebar";

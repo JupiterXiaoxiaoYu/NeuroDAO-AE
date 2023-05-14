@@ -23,7 +23,7 @@
     "**/*.ts",
     "**/*.tsx",
     "components/Header/ConnectWalletButton.js",
-    "pages/exploreDAO/index.js",
+     "contexts/WalletProviderContext.js",
     "components/Header/Profile.js",
     "components/Sidebar/NavSection.js",
     "pages/myDAO/index.js",

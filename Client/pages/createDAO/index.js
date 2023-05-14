@@ -1,7 +1,7 @@
 import React, { Component, useState } from 'react';
 import JSide from "./JSide.js";
-import { network, layer } from "../panels/kerasCode.js";
-import ModelPanel from "./ModelPanel.js"
+import { network, layer } from "../../panels/kerasCode";
+import ModelPanel from "./ModelPanel"
 import { Header } from "../../components/Header";
 import { Sidebar } from "../../components/Sidebar";
 //import {NetworkGraph} from "./ModelPanel.js"

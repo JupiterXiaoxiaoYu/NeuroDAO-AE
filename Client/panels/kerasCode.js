@@ -4,33 +4,14 @@ export class network {
         this.optimizer = "SGD";
         this.learnRate = 0.01;
         this.loss = "Mean Squared Error";
-        // this.epochs = 100;
-        // this.batchSize = 32;
-        // this.learningRateDecay = false; 
     }
-
-    // constructor(numOfLayer, inputNum, outputNum, hiddenNum) {
-    //     this.arrLayers = [new layer(3, 'relu', false, true, 'uniform'), new layer(6, 'relu', false, true, 'uniform'), new layer(4, 'relu', false, true, 'uniform')];
-    //     this.optimizer = "SGD";
-    //     this.learnRate = 0.01;
-    //     this.loss = "Mean Squared Error";
-    //     // this.epochs = 100;
-    //     // this.batchSize = 32;
-    //     // this.learningRateDecay = false; 
-    // }
-
 
 
     copy(old_network){
-        // console.log("keys of old:");
-        // console.log(Object.keys(old_network));
         this.arrLayers = old_network.arrLayers;
         this.optimizer = old_network.optimizer;
         this.learnRate = old_network.learnRate;
-        // this.learningRateDecay = old_network.learningRateDecay;
         this.loss = old_network.loss;
-        // this.epochs = old_network.epochs;
-        // this.batchSize = old_network.batchSize;
         this.reportContent();
     }
 
@@ -51,9 +32,6 @@ export class network {
         console.log(" ");
     }
 
-    //  setBatchSize(newBatch) {
-    //      this.batchSize = newBatch;
-    //  }
      setLearnRate(newLearn) {
          this.learnRate = newLearn;
      } 
@@ -62,17 +40,6 @@ export class network {
          this.loss = newLoss; 
      }
 
-    //  setEpochs(newEpochs) {
-    //      this.epochs = newEpochs;
-    //  }
-
-    //  setlearningRateDecay(newDecay) {
-    //      this.learningRateDecay = newDecay;
-    //  }
-
-    // setInit(newInit) {
-    //     this.initializer = newInit;
-    // }
     addLayer(newLayer) {
         this.arrLayers.push(newLayer);
     }
@@ -81,11 +48,6 @@ export class network {
         console.log('move index here',index)
         this.arrLayers.splice(index, 1);
     }
-
-    // this.doSomething = function () {
-    //     console.log(1);
-    // }
-
 }
 
 export class layer {

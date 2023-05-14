@@ -1,7 +1,7 @@
 import React, { Component, useState } from "react";
 import { Box, Divider, Flex, Heading, SimpleGrid, VStack, Text, Button } from "@chakra-ui/react";
-import useAeternitySDK from '../../hooks/useAeternitySDK';
-import NeuroDAOFactoryACI from '../acis/NeuroDAOFactory.json'
+// import useAeternitySDK from '../../hooks/useAeternitySDK';
+// import NeuroDAOFactoryACI from '../acis/NeuroDAOFactory.json'
 import {useWalletProvider} from '../../contexts/WalletProviderContext'
 
 const ConfirmPanel = (props) => {
