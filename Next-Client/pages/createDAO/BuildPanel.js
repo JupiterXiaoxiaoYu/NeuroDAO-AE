@@ -134,17 +134,6 @@ class BuildPanel extends Component {
                 <Box mb="1rem" />
                 <Text fontWeight={'bold'}>Modify Architecture and Paramters of the DAO:</Text>
                 <Box mb="1rem" />
-                {/* <Button backgroundColor={'green.400'} onClick={() => {
-                    console.log("adding layer");
-                    this.props.appState.doAddLayer();
-                }}>{this.props.appState.network.arrLayers.length === 5 ? `Cannot Add More` : `Add Layer ${this.props.appState.network.arrLayers.length + 1}`}</Button>{' '}
-
-                <Button style={{ marginLeft: '20px' }} backgroundColor={'green.400'} onClick={() => {
-                    console.log("removing layer", this.props.appState.selectedLayer);
-                    this.props.appState.doRemoveLayer(this.props.appState.selectedLayer);
-                }}>{this.props.appState.network.arrLayers.length === 3 ? `At least 3 layers` : `Remove Layer ${this.props.appState.selectedLayer + 1}`}</Button>{' '} */}
-        
-                {/* {alert("selected layer is " + this.props.appState.selectedLayer)} */}
                 <Form>
                     <Form.Group controlId="formBasicRange">
                         <Form.Label>Node Count: {selectedLayer.numNodes}</Form.Label>
@@ -182,9 +171,6 @@ class BuildPanel extends Component {
                         })}
                     </MenuList>
                 </Menu>
-                {/* <Box mb="1rem" />
-                <p>{this.props.appState.loadable ? this.props.appState.network.arrLayers[this.props.appState.selectedLayer].activation : "<create a layer>" }</p>
-                <Box mb="1rem" /> */}
                 <Box mb="1rem" />
                 <Menu>
                     <MenuButton

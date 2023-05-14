@@ -23,11 +23,18 @@
     "**/*.ts",
     "**/*.tsx",
     "components/Header/ConnectWalletButton.js",
-     "contexts/WalletProviderContext.js",
+    "contexts/WalletProviderContext.js",
+    "pages/exploreDAO/index.js",
     "components/Header/Profile.js",
     "components/Sidebar/NavSection.js",
     "pages/myDAO/index.js",
-    "contexts/WalletProviderContext.js"
+    "pages/createDAO/BuildPanel.js",
+    "pages/createDAO/ConfirmPanel.js",
+    "pages/createDAO/Jside.js",
+    "pages/createDAO/ModelPanel.js",
+    "contexts/WalletProviderContext.js",
+    "pages/daoPage/[id].js",
+
   ],
   "exclude": [
     "node_modules"
