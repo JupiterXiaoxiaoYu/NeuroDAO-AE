@@ -36,7 +36,7 @@ For this hackathon, my main focus is on enhancing the Defi aspects of interopera
 
 ## The Design
 
-![arch drawio (1)](https://github.com/JupiterXiaoxiaoYu/NeuroDAO-AE/assets/71649294/fe049e7d-83c9-4cb7-b4cb-c0af65beef8f)
+![arch drawio (1)](./arch.drawio.png)
 
 
 In NeuroDAOs, a DAO could be visualized as a neural network and each member could become a node in that specific neural network. In order to make the investment decision more decentralized and more profit-oriented, each node has its own weights which decide how much it would affect the decision-making of the whole neural network. And, to increase the weight, each node has to make the personal decision as "right" as possible. After an epoch of investment (meaning buy in and sell the targeted token/ or perform a full loop of Defi interaction), the weights of each node will be automatically adjusted to fits the investment result, this process is called optimizing neural network node weights, also, in NeuroDAOs' context, is called **optimizing DAO**.
