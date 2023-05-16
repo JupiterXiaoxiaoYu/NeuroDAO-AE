@@ -13,7 +13,7 @@
 
 On NeuroDAOs Users can create DAOs and DAO tokens, and join or manage the DAO in various roles such as Input Nodes (providing investment information), Hidden Nodes (analyzing investment information), Output Nodes (adjusting and making final decisions), LP Nodes (providing investment funds).
 
-![DAO drawio](https://github.com/JupiterXiaoxiaoYu/NeuroDAO-AE/assets/71649294/8a1e904f-f710-4f7d-a8e5-1b86d67acbbb)
+![DAO drawio (1)](https://github.com/JupiterXiaoxiaoYu/NeuroDAO-AE/assets/71649294/68db2d30-45a8-4349-9061-bcb733e8892c)
 
 - As Input Nodes, users can create investment proposals, provide or supplement investment information, and pledge DAO tokens as confidence.
 - As Hidden Nodes, users can verify and analyze investment information, provide support or dissenting opinions, and pledge DAO tokens as confidence.
@@ -38,7 +38,7 @@ For this hackathon, my main focus is on enhancing the Defi aspects of interopera
 
 ## The Design
 
-![arch drawio (2)](https://github.com/JupiterXiaoxiaoYu/NeuroDAO-AE/assets/71649294/4f646e32-cb09-4e7f-874a-2ac23e6951c3)
+![arch drawio (3)](https://github.com/JupiterXiaoxiaoYu/NeuroDAO-AE/assets/71649294/8b9850c9-f236-4f4a-8977-b83f55851e14)
 
 In NeuroDAOs, a DAO could be visualized as a neural network and each member could become a node in that specific neural network. In order to make the investment decision more decentralized and more profit-oriented, each node has its own weights which decide how much it would affect the decision-making of the whole neural network. And, to increase the weight, each node has to make the personal decision as "right" as possible. After an epoch of investment (meaning buy in and sell the targeted token/ or perform a full loop of Defi interaction), the weights of each node will be automatically adjusted to fits the investment result, this process is called optimizing neural network node weights, also, in NeuroDAOs' context, is called **optimizing DAO**.
 
@@ -63,7 +63,7 @@ The entire process of optimizing neural network node weights can be divided into
 
 ## A Defi-enabled DAO Protocol
 
-![Copy of arch drawio](https://github.com/JupiterXiaoxiaoYu/NeuroDAO-AE/assets/71649294/95bbc695-def3-49bc-a545-2b70547c91f8)
+![Copy of arch drawio (1)](https://github.com/JupiterXiaoxiaoYu/NeuroDAO-AE/assets/71649294/fb81eb23-c61f-44cd-8756-59d0fe15d537)
 
 
 ### Integrations with Defi Protocols / Token Standard on Aeternity
