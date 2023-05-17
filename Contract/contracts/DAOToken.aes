@@ -133,6 +133,12 @@ contract DAOToken =
     require_non_negative_value(value)
     internal_transfer(from_account, to_account, value)
 
+  stateful entrypoint burnUnderDAO(_account: address, value: int) =
+    require_balance(_account, value)
+    require_non_negative_value(value)
+    put(state{ total_supply = state.total_supply - value, balances[_account] @ b = b - value })
+    Chain.event(Burn(_account, value))
+
   // Create allowance for `for_account` to withdraw from your account `Call.caller`,
   // multiple times, up to the `value` amount.
   // This function will abort and fail if called again when there is allowance

@@ -1,87 +1,7 @@
 @compiler >= 6
 
 include "List.aes"
-// include "./DEXInterface.aes"
-
-contract interface IWAE =
-    payable stateful entrypoint deposit_to : (address) => unit
-    payable stateful entrypoint deposit : () => unit
-    stateful entrypoint transfer : (address, int) => unit
-    stateful entrypoint withdraw : (int) => unit
-
-contract interface IAEX9Minimal =
-    record allowance_accounts = {from_account : address,for_account : address}
-    record meta_info = {name : string,symbol : string,decimals : int}
-    entrypoint meta_info : () => IAEX9Minimal.meta_info
-    entrypoint total_supply : () => int
-    entrypoint balance : (address) => option(int)
-    entrypoint allowance : (IAEX9Minimal.allowance_accounts) => option(int)
-    stateful entrypoint transfer : (address, int) => unit
-    stateful entrypoint create_allowance : (address, int) => unit
-    stateful entrypoint transfer_allowance : (address, address, int) => unit
-
-contract interface IAedexV2Callback =
-    entrypoint aedex_v2_call : (address, int, int) => unit
-
-contract interface IAedexV2FactoryForPair =
-    entrypoint fee_to : () => option(address)
-
-contract interface IAedexV2Pair =
-    record amounts = {amount0 : int,amount1 : int}
-    record reserves = {reserve0 : int,reserve1 : int,block_timestamp_last : int}
-    entrypoint balance : (address) => option(int)
-    entrypoint init : (IAedexV2FactoryForPair, IAEX9Minimal, IAEX9Minimal, option(int), option(int)) => void
-    entrypoint minimum_liquidity : () => int
-    entrypoint factory : () => IAedexV2FactoryForPair
-    entrypoint token0 : () => IAEX9Minimal
-    entrypoint token1 : () => IAEX9Minimal
-    entrypoint price0_cumulative_last : () => int
-    entrypoint price1_cumulative_last : () => int
-    entrypoint k_last : () => int
-    stateful entrypoint mint : (address) => int
-    stateful entrypoint burn : (address) => IAedexV2Pair.amounts
-    stateful entrypoint swap : (int, int, address, option(IAedexV2Callback)) => unit
-    stateful entrypoint skim : (address) => unit
-    stateful entrypoint sync : () => unit
-    entrypoint get_reserves : () => IAedexV2Pair.reserves
-    stateful entrypoint transfer_allowance : (address, address, int) => unit
-    
-contract interface IAedexV2Factory =
-    entrypoint fee_to : () => option(address)
-    entrypoint fee_to_setter : () => address
-    entrypoint get_pair : (IAEX9Minimal, IAEX9Minimal) => option(IAedexV2Pair)
-    entrypoint get_nth_pair : (int) => IAedexV2Pair
-    entrypoint all_pairs_length : () => int
-    entrypoint get_all_pairs : () => list(IAedexV2Pair)
-    stateful entrypoint create_pair : (IAEX9Minimal, IAEX9Minimal, option(int), option(int)) => IAedexV2Pair
-    entrypoint set_fee_to : (option(address)) => unit
-    entrypoint set_fee_toSetter : (address) => unit
-
-contract interface IAedexV2Router =
-    type amount_a = int
-    type amount_b = int
-    type amount_token = int
-    type amount_ae = int
-    type liquidity = int
-    entrypoint balance : () => int
-    entrypoint factory : () => IAedexV2Factory
-    entrypoint wae : () => IWAE
-    entrypoint wae_aex9 : () => IAEX9Minimal
-    stateful entrypoint add_liquidity : (IAEX9Minimal, IAEX9Minimal, int, int, int, int, address, option(int), int) => (IAedexV2Router.amount_a * IAedexV2Router.amount_b * IAedexV2Router.liquidity)
-    payable stateful entrypoint add_liquidity_ae : (IAEX9Minimal, int, int, int, address, option(int), int) => (IAedexV2Router.amount_token * IAedexV2Router.amount_ae * IAedexV2Router.liquidity)
-    stateful entrypoint remove_liquidity : (IAEX9Minimal, IAEX9Minimal, int, int, int, address, int) => (IAedexV2Router.amount_a * IAedexV2Router.amount_b)
-    payable stateful entrypoint remove_liquidity_ae : (IAEX9Minimal, int, int, int, address, int) => (IAedexV2Router.amount_token * IAedexV2Router.amount_ae)
-    stateful entrypoint swap_exact_tokens_for_tokens : (int, int, list(IAEX9Minimal), address, int, option(IAedexV2Callback)) => list(int)
-    stateful entrypoint swap_tokens_for_exact_tokens : (int, int, list(IAEX9Minimal), address, int, option(IAedexV2Callback)) => list(int)
-    payable stateful entrypoint swap_exact_ae_for_tokens : (int, list(IAEX9Minimal), address, int, option(IAedexV2Callback)) => list(int)
-    stateful entrypoint swap_tokens_for_exact_ae : (int, int, list(IAEX9Minimal), address, int, option(IAedexV2Callback)) => list(int)
-    stateful entrypoint swap_exact_tokens_for_ae : (int, int, list(IAEX9Minimal), address, int, option(IAedexV2Callback)) => list(int)
-    payable stateful entrypoint swap_ae_for_exact_tokens : (int, list(IAEX9Minimal), address, int, option(IAedexV2Callback)) => list(int)
-    entrypoint quote : (int, int, int) => int
-    entrypoint get_amount_out : (int, int, int) => int
-    entrypoint get_amount_in : (int, int, int) => int
-    entrypoint get_amounts_out : (int, list(IAEX9Minimal)) => list(int)
-    entrypoint get_amounts_in : (int, list(IAEX9Minimal)) => list(int)
+include "./DEXInterface.aes"
 
 
 contract Swap = 
@@ -133,21 +53,31 @@ contract Swap =
                     None => abort("No result returned")
                     Some(z) => z
 
-    // entrypoint getEstimatedReceivedToken(int: amount, targetedTokenAddress: address) :int = 
-    //     let dexRouter : IAedexV2Router = Address.to_contract(state.dexRouterAddress)
-    //     let token : IAEX9Minimal = Address.to_contract(targetedTokenAddress)
-    //     let amount = dexRouter.get_amounts_out(amount, [dexRouter.wae(), token]).last()
-    //     switch(amount)
-    //         None => abort("No amount returned")
-    //         Some(x) => x
+    entrypoint getEstimatedReceivedToken(amount: int, targetedTokenAddress: address) :int = 
+        let dexRouter : IAedexV2Router = Address.to_contract(state.dexRouterAddress)
+        let token : IAEX9Minimal = Address.to_contract(targetedTokenAddress)
+        let amount = List.last(dexRouter.get_amounts_out(amount, [dexRouter.wae_aex9(), token]))
+        switch(amount)
+            None => abort("No amount returned")
+            Some(x) => x
 
-    // entrypoint getEstimatedReceivedAe(int: amount, targetedTokenAddress: address) :int =
-    //     let dexRouter : IAedexV2Router = Address.to_contract(state.dexRouterAddress)
-    //     let token : IAEX9Minimal = Address.to_contract(targetedTokenAddress)
-    //     let amount = dexRouter.get_amounts_out(amount, [token, dexRouter.wae()]).last()
-    //     switch(amount)
-    //         None => abort("No amount returned")
-    //         Some(x) => x
+    entrypoint getEstimatedReceivedAe(amount: int, targetedTokenAddress: address) :int =
+        let dexRouter : IAedexV2Router = Address.to_contract(state.dexRouterAddress)
+        let token : IAEX9Minimal = Address.to_contract(targetedTokenAddress)
+        let amount = List.last(dexRouter.get_amounts_out(amount, [token, dexRouter.wae_aex9()]))
+        switch(amount)
+            None => abort("No amount returned")
+            Some(x) => x
+
+    // Check if a pair exists
+    entrypoint checkPairExists(_tokenAddress: address): bool =
+        let tokenAddress: IAEX9Minimal = Address.to_contract(_tokenAddress)
+        let dexFactory : IAedexV2Factory = Address.to_contract(state.dexFactoryAddress)
+        let dexRouter : IAedexV2Router = Address.to_contract(state.dexRouterAddress)
+        switch(dexFactory.get_pair(tokenAddress, dexRouter.wae_aex9()))
+            None => false
+            Some(_) => true
+
 
 
 

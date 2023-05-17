@@ -33,7 +33,7 @@ describe('userFlowTest', () => {
     contract = await aeSdk.initializeContract({ sourceCode: sourceCodeC,fileSystem:fileSystemC });
     // get content of contract
 
-    const tx = await contract.$deploy(["aeDAO", "aeDAO", "aeD", "aeD", 0,tokenAddress,3,3,3,3,true,tokenAddress])
+    const tx = await contract.$deploy(["aeDAO", "aeDAO", "aeD", "aeD", 0,tokenAddress,3,2,3,3,false,tokenAddress, tokenAddress])
     
     // console.log('DAO Token Address here',address)
 
@@ -54,13 +54,42 @@ describe('userFlowTest', () => {
 
   it('Join DAO as Input Nodes', async () => {
     const result = await contract.isMember(utils.getDefaultAccounts()[0].address);
-    // expect(set).to.equal(true);
     expect(result.decodedResult).to.equal(false);
     await contract.joinAsInputNode(utils.getDefaultAccounts()[0].address, { onAccount: utils.getDefaultAccounts()[0] });
     const result1 = await contract.isMember(utils.getDefaultAccounts()[0].address);
     expect(result1.decodedResult).to.equal(true);
-
   });
+
+  it('Join DAO as Input Again - Same person', async () => {
+    try{
+    const result = await contract.joinAsInputNode(utils.getDefaultAccounts()[0].address, { onAccount: utils.getDefaultAccounts()[0] });
+    }catch(e){
+      expect(e.toString()).to.equal('NodeInvocationError: Invocation failed: "AlreadyInputNode"')
+    }
+  });
+
+  it('Join DAO as Input Again - Another person', async () => {
+
+    const result = await contract.joinAsInputNode(utils.getDefaultAccounts()[4].address, { onAccount: utils.getDefaultAccounts()[4] });
+    expect(result.decodedResult).to.equal(true)
+  });
+
+  it('Join DAO as Input Again - No spare positions', async () => {
+    try{
+    const result = await contract.joinAsInputNode(utils.getDefaultAccounts()[1].address, { onAccount: utils.getDefaultAccounts()[1] });
+    }catch(e){
+      expect(e.toString()).to.equal('NodeInvocationError: Invocation failed: "NoSpareInputNode"')
+    }
+  });
+
+  it('Join DAO as Hidden Nodes when already became a input node - Multiply Roles set to false', async () => {
+    try{
+    const result = await contract.joinAsHiddenNode(utils.getDefaultAccounts()[0].address, { onAccount: utils.getDefaultAccounts()[0] });
+    }catch(e){
+      expect(e.toString()).to.equal('NodeInvocationError: Invocation failed: "NoResponsibilityOverlap"')
+    }
+  });
+
 
   it('Join DAO as Hidden Nodes', async () => {
     const result = await contract.isMember(utils.getDefaultAccounts()[1].address);

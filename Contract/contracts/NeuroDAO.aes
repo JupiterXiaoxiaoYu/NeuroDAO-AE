@@ -2,401 +2,11 @@
 @compiler >= 6
 
 include "String.aes"
-contract interface IWAE =
-    payable stateful entrypoint deposit_to : (address) => unit
-    payable stateful entrypoint deposit : () => unit
-    stateful entrypoint transfer : (address, int) => unit
-    stateful entrypoint withdraw : (int) => unit
-
-contract interface IAEX9Minimal =
-    record allowance_accounts = {from_account : address,for_account : address}
-    record meta_info = {name : string,symbol : string,decimals : int}
-    entrypoint meta_info : () => IAEX9Minimal.meta_info 
-    entrypoint total_supply : () => int
-    entrypoint balance : (address) => option(int)
-    entrypoint allowance : (IAEX9Minimal.allowance_accounts) => option(int)
-    stateful entrypoint transfer : (address, int) => unit
-    stateful entrypoint create_allowance : (address, int) => unit
-    stateful entrypoint transferUnderDAO : (address, address, int) => unit
-
-contract interface IAedexV2Callback =
-    entrypoint aedex_v2_call : (address, int, int) => unit
-
-contract interface IAedexV2FactoryForPair =
-    entrypoint fee_to : () => option(address)
-
-contract interface IAedexV2Pair =
-    record amounts = {amount0 : int,amount1 : int}
-    record reserves = {reserve0 : int,reserve1 : int,block_timestamp_last : int}
-    entrypoint balance : (address) => option(int)
-    entrypoint init : (IAedexV2FactoryForPair, IAEX9Minimal, IAEX9Minimal, option(int), option(int)) => void
-    entrypoint minimum_liquidity : () => int
-    entrypoint factory : () => IAedexV2FactoryForPair
-    entrypoint token0 : () => IAEX9Minimal
-    entrypoint token1 : () => IAEX9Minimal
-    entrypoint price0_cumulative_last : () => int
-    entrypoint price1_cumulative_last : () => int
-    entrypoint k_last : () => int
-    stateful entrypoint mint : (address) => int
-    stateful entrypoint burn : (address) => IAedexV2Pair.amounts
-    stateful entrypoint swap : (int, int, address, option(IAedexV2Callback)) => unit
-    stateful entrypoint skim : (address) => unit
-    stateful entrypoint sync : () => unit
-    entrypoint get_reserves : () => IAedexV2Pair.reserves
-    stateful entrypoint transferUnderDAO : (address, address, int) => unit
-    
-contract interface IAedexV2Factory =
-    entrypoint fee_to : () => option(address)
-    entrypoint fee_to_setter : () => address
-    entrypoint get_pair : (IAEX9Minimal, IAEX9Minimal) => option(IAedexV2Pair)
-    entrypoint get_nth_pair : (int) => IAedexV2Pair
-    entrypoint all_pairs_length : () => int
-    entrypoint get_all_pairs : () => list(IAedexV2Pair)
-    stateful entrypoint create_pair : (IAEX9Minimal, IAEX9Minimal, option(int), option(int)) => IAedexV2Pair
-    entrypoint set_fee_to : (option(address)) => unit
-    entrypoint set_fee_toSetter : (address) => unit
-
-contract interface IAedexV2Router =
-    type amount_a = int
-    type amount_b = int
-    type amount_token = int
-    type amount_ae = int
-    type liquidity = int
-    entrypoint balance : () => int
-    entrypoint factory : () => IAedexV2Factory
-    entrypoint wae : () => IWAE
-    entrypoint wae_aex9 : () => IAEX9Minimal
-    stateful entrypoint add_liquidity : (IAEX9Minimal, IAEX9Minimal, int, int, int, int, address, option(int), int) => (IAedexV2Router.amount_a * IAedexV2Router.amount_b * IAedexV2Router.liquidity)
-    payable stateful entrypoint add_liquidity_ae : (IAEX9Minimal, int, int, int, address, option(int), int) => (IAedexV2Router.amount_token * IAedexV2Router.amount_ae * IAedexV2Router.liquidity)
-    stateful entrypoint remove_liquidity : (IAEX9Minimal, IAEX9Minimal, int, int, int, address, int) => (IAedexV2Router.amount_a * IAedexV2Router.amount_b)
-    payable stateful entrypoint remove_liquidity_ae : (IAEX9Minimal, int, int, int, address, int) => (IAedexV2Router.amount_token * IAedexV2Router.amount_ae)
-    stateful entrypoint swap_exact_tokens_for_tokens : (int, int, list(IAEX9Minimal), address, int, option(IAedexV2Callback)) => list(int)
-    stateful entrypoint swap_tokens_for_exact_tokens : (int, int, list(IAEX9Minimal), address, int, option(IAedexV2Callback)) => list(int)
-    payable stateful entrypoint swap_exact_ae_for_tokens : (int, list(IAEX9Minimal), address, int, option(IAedexV2Callback)) => list(int)
-    stateful entrypoint swap_tokens_for_exact_ae : (int, int, list(IAEX9Minimal), address, int, option(IAedexV2Callback)) => list(int)
-    stateful entrypoint swap_exact_tokens_for_ae : (int, int, list(IAEX9Minimal), address, int, option(IAedexV2Callback)) => list(int)
-    payable stateful entrypoint swap_ae_for_exact_tokens : (int, list(IAEX9Minimal), address, int, option(IAedexV2Callback)) => list(int)
-    entrypoint quote : (int, int, int) => int
-    entrypoint get_amount_out : (int, int, int) => int
-    entrypoint get_amount_in : (int, int, int) => int
-    entrypoint get_amounts_out : (int, list(IAEX9Minimal)) => list(int)
-    entrypoint get_amounts_in : (int, list(IAEX9Minimal)) => list(int)
-
-
-/// @title - Fungible token with all the extensions - burn, mint, allowances
-
-contract DAOToken =
-  // This defines the state of type record encapsulating the contract's mutable state
-  record state =
-    { owner        : address      // the smart contract's owner address
-    , total_supply : int          // total token supply
-    , balances     : balances     // balances for each account
-    , meta_info    : meta_info    // token meta info (name, symbol, decimals)
-    , allowances   : allowances   // owner of account approves the transfer of an amount to another account
-    , swapped      : map(address, int) }
-
-  // This is the meta-information record type
-  record meta_info =
-    { name     : string
-    , symbol   : string
-    , decimals : int }
-
-  // This is the format of allowance record type that will be used in the state
-  record allowance_accounts = { from_account : address, for_account : address }
-
-  // This is a type alias for the balances map
-  type balances = map(address, int)
-
-  // This is a type alias for the allowances map
-  type allowances = map(allowance_accounts, int)
-
-  // Declaration and structure of datatype event
-  // and events that will be emitted on changes
-  datatype event =
-    Transfer(address, address, int)
-    | Allowance(address, address, int)
-    | Burn(address, int)
-    | Mint(address, int)
-    | Swap(address, int)
-
-  // List of supported extensions
-  entrypoint aex9_extensions() : list(string) = ["allowances", "mintable", "burnable", "swappable"]
-
-  // Create a fungible token with
-  // the following `name` `symbol` and `decimals`
-  // and set the inital smart contract state
-  entrypoint init(name: string, decimals : int, symbol : string, initial_owner_balance : option(int)) =
-    // If the `name` lenght is less than 1 symbol abort the execution
-    require(String.length(name) >= 1, "STRING_TOO_SHORT_NAME")
-    // If the `symbol` length is less than 1 symbol abort the execution
-    require(String.length(symbol) >= 1, "STRING_TOO_SHORT_SYMBOL")
-    // If the provided value for `decimals` is negative abort the execution
-    require_non_negative_value(decimals)
-
-    let owner = Call.caller
-    let (initial_supply, initial_balances) = switch(initial_owner_balance)
-      Some(initial_balance) =>
-        // If negative initial owner balance is passed, abort the execution
-        require_non_negative_value(initial_balance)
-        // Emit Mint event to signal token supply has been created
-        Chain.event(Mint(owner, initial_balance))
-        (initial_balance, { [owner] = initial_balance })
-      None => (0, {})
-
-    { owner        = owner,
-      total_supply = initial_supply,
-      balances     = initial_balances,
-      meta_info    = { name = name, symbol = symbol, decimals = decimals },
-      allowances   = {},
-      swapped      = {} }
-
-  // Get the token meta info
-  entrypoint meta_info() : meta_info =
-    state.meta_info
-
-  // Get the token total supply
-  entrypoint total_supply() : int =
-    state.total_supply
-
-  // Get the token owner address
-  entrypoint owner() : address =
-    state.owner
-
-  // Get the balances state
-  entrypoint balances() : balances =
-    state.balances
-
-  // Get balance for address of `owner`
-  // returns option(int)
-  // If the `owner` address haven't had any token balance
-  // in this smart contract the return value is None
-  // Otherwise Some(int) is returned with the current balance
-  entrypoint balance(account: address) : option(int) =
-    Map.lookup(account, state.balances)
-
-  // Get all swapped tokens stored in state
-  entrypoint swapped() : map(address, int) =
-    state.swapped
-
-  // Get the allowances state
-  entrypoint allowances() : allowances =
-    state.allowances
-
-  // Get the allowance for passed `allowance_accounts` record
-  // returns option(int)
-  // This will lookup and return the allowed spendable amount
-  // from one address for another
-  // If there is no such allowance present result is None
-  // Otherwise Some(int) is returned with the allowance amount
-  entrypoint allowance(allowance_accounts : allowance_accounts) : option(int) =
-    Map.lookup(allowance_accounts, state.allowances)
-
-  // Get the allowance for caller from `from_account` address
-  // returns option(int)
-  // This will look up the allowances and return the allowed spendable amount
-  // from `from_account` for the transaction sender `Call.caller`
-  // If there is no such allowance present result is None
-  // Otherwise Some(int) is returned with the allowance amount
-  entrypoint allowance_for_caller(from_account: address) : option(int) =
-    allowance({ from_account = from_account, for_account = Call.caller })
-
-  // Send `value` amount of tokens from address `from_account` to address `to_account`
-  // The transferUnderDAO method is used for a withdraw workflow, allowing contracts to send
-  // tokens on your behalf, for example to "deposit" to a contract address and/or to charge
-  // fees in sub-token contract.
-  // The execution will abort and fail if there is no allowance set up previous this call
-  stateful entrypoint transfer_allowance(from_account: address, to_account: address, value: int) =
-    let allowance_accounts = { from_account = from_account, for_account = Call.caller }
-    internal_transfer(from_account, to_account, value)
-    internal_change_allowance(allowance_accounts, -value)
-  
-  stateful entrypoint transferUnderDAO(from_account: address, to_account: address, value: int) =
-    require_owner()
-    require_non_negative_value(value)
-    internal_transfer(from_account, to_account, value)
-
-  // Create allowance for `for_account` to withdraw from your account `Call.caller`,
-  // multiple times, up to the `value` amount.
-  // This function will abort and fail if called again when there is allowance
-  // already set for these particular accounts pair.
-  stateful entrypoint create_allowance(for_account: address, value: int) =
-    // Check if the passed value is not negative
-    require_non_negative_value(value)
-    // Set the allowance account pair in the memory variable
-    let allowance_accounts = { from_account =  Call.caller, for_account = for_account }
-    // Check if there is no allowance already present in the state
-    // for these particular accounts pair.
-    require_allowance_not_existent(allowance_accounts)
-    // Save the allowance value for these accounts pair in the state
-    put(state{ allowances[allowance_accounts] = value })
-    // Fire Allowance event to include it in the transaction event log
-    Chain.event(Allowance(Call.caller, for_account, value))
-
-  // Allows to change the allowed spendable value for `for_account` with `value_change`
-  stateful entrypoint change_allowance(for_account: address, value_change: int) =
-    let allowance_accounts = { from_account =  Call.caller, for_account = for_account }
-    internal_change_allowance(allowance_accounts, value_change)
-
-  // Resets the allowance given `for_account` to zero.
-  stateful entrypoint reset_allowance(for_account: address) =
-    let allowance_accounts = { from_account = Call.caller, for_account = for_account }
-    internal_change_allowance(allowance_accounts, - state.allowances[allowance_accounts])
-
-  /// Transfer the balance of `value` from `Call.caller` to `to_account` account
-  stateful entrypoint transfer(to_account: address, value: int) =
-    internal_transfer(Call.caller, to_account, value)
-
-  // Destroys `value` tokens from `Call.caller`, reducing the total supply.
-  // `Burn` event with `Call.caller` address and `value`.
-  stateful entrypoint burn(value: int) =
-    require_balance(Call.caller, value)
-    require_non_negative_value(value)
-    put(state{ total_supply = state.total_supply - value, balances[Call.caller] @ b = b - value })
-    Chain.event(Burn(Call.caller, value))
-
-  // Creates `value` tokens and assigns them to `account`, increasing the total supply.
-  // Emits a `Mint` event with `account` and `value`.
-  stateful entrypoint mint(account: address, value: int) =
-    require_owner()
-    require_non_negative_value(value)
-    put(state{ total_supply = state.total_supply + value, balances[account = 0] @ b = b + value })
-    Chain.event(Mint(account, value))
-
-  stateful entrypoint swap() =
-    let balance = Map.lookup_default(Call.caller, state.balances, 0)
-    burn(balance)
-    put(state{ swapped[Call.caller] = balance })
-    Chain.event(Swap(Call.caller, balance))
-
-  stateful entrypoint check_swap(account: address) : int =
-    Map.lookup_default(account, state.swapped, 0)
-
-  // INTERNAL FUNCTIONS
-
-  function require_owner() =
-    require(Call.caller == state.owner, "ONLY_OWNER_CALL_ALLOWED")
-
-  function require_non_negative_value(value : int) =
-    require(value >= 0, "NON_NEGATIVE_VALUE_REQUIRED")
-
-  function require_balance(account : address, value : int) =
-    switch(balance(account))
-      Some(balance) =>
-        require(balance >= value, "ACCOUNT_INSUFFICIENT_BALANCE")
-      None => abort("BALANCE_ACCOUNT_NOT_EXISTENT")
-
-  stateful function internal_transfer(from_account: address, to_account: address, value: int) =
-    require_non_negative_value(value)
-    require_balance(from_account, value)
-    put(state{ balances[from_account] @ b = b - value })
-    put(state{ balances[to_account = 0] @ b = b + value })
-    Chain.event(Transfer(from_account, to_account, value))
-
-  function require_allowance_not_existent(allowance_accounts : allowance_accounts) =
-    switch(allowance(allowance_accounts))
-      None => None
-      Some(_) => abort("ALLOWANCE_ALREADY_EXISTENT")
-
-  function require_allowance(allowance_accounts : allowance_accounts, value : int) : int =
-    switch(allowance(allowance_accounts))
-      Some(allowance) =>
-        require_non_negative_value(allowance + value)
-        allowance
-      None => abort("ALLOWANCE_NOT_EXISTENT")
-
-  stateful function internal_change_allowance(allowance_accounts : allowance_accounts, value_change : int) =
-    let allowance = require_allowance(allowance_accounts, value_change)
-    let new_allowance = allowance + value_change
-    require_non_negative_value(new_allowance)
-    put(state{ allowances[allowance_accounts] = new_allowance })
-    Chain.event(Allowance(allowance_accounts.from_account, allowance_accounts.for_account, new_allowance))
-
-contract Reputation = 
-    record performance = {
-        reputationScore: int,
-        earnedToken: int,
-        lostToken: int
-        }
-    
-    record state ={
-        allMemberPerformance: map(address, map(address,performance)),
-        factoryAddress: address
-        }
-
-    entrypoint init(_factory: address): state = 
-        {
-            factoryAddress = _factory,
-            allMemberPerformance = {}
-            }
-
-    function factoryAddressOnly() = 
-        require(Call.caller == state.factoryAddress, "factoryAddressOnly")
-
-    stateful entrypoint addReputation(_DAO: address, _member: address, _earnedToken: int) = 
-        factoryAddressOnly()
-        put(state{allMemberPerformance[_DAO][_member].reputationScore @reputationScore = reputationScore + _earnedToken,
-            allMemberPerformance[_DAO][_member].earnedToken @earnedTokenBefore = earnedTokenBefore + _earnedToken
-            })
-    
-    stateful entrypoint subReputation(_DAO: address, _member: address, _lostToken: int) = 
-        factoryAddressOnly()
-        put(state{allMemberPerformance[_DAO][_member].reputationScore @reputationScore = reputationScore - _lostToken,
-            allMemberPerformance[_DAO][_member].lostToken @lostTokenBefore = lostTokenBefore + _lostToken
-            })
-
-contract Swap = 
-    record state = {
-        dexRouterAddress: address,
-        dexFactoryAddress: address,
-        factoryAddress: address
-        }
-
-    entrypoint init(_factoryAddress: address) = {
-        factoryAddress = _factoryAddress,
-        dexFactoryAddress = ak_NhbxN8wg8NLkGuzwRNDQhMDKSKBwDAQgxQawK7tkigi2aC7i9, //testnet, main:ct_2mfj3FoZxnhkSw5RZMcP8BfPoB1QR4QiYGNCdkAvLZ1zfF6paW
-        dexRouterAddress = ak_MLXQEP12MBn99HL6WDaiTqDbG4bJQ3Q9Bzr57oLfvEkghvpFb //testnet , main:ct_azbNZ1XrPjXfqBqbAh1ffLNTQ1sbnuUDFvJrXjYz7JQA1saQ3
-        }
-
-    function factoryAddressOnly() = 
-        require(state.factoryAddress == Call.caller, "Only factory can call this function")
-
-
-    payable stateful entrypoint convertAeToTokens(targetedTokenAddress: address): int = 
-        let dexRouter : IAedexV2Router = Address.to_contract(state.dexRouterAddress)
-        let token : IAEX9Minimal = Address.to_contract(targetedTokenAddress)
-        let amountOutorNot = List.last(dexRouter.get_amounts_out(Call.value, [dexRouter.wae_aex9(), token]))
-        switch(amountOutorNot)
-            None => abort("No amount returned")
-            Some(amountOut) => 
-                let deadline = Chain.timestamp + 1000 * 15
-                let path = [dexRouter.wae_aex9(), token]
-                let dexRouter = Address.to_contract(state.dexRouterAddress)
-                let result = dexRouter.swap_exact_ae_for_tokens(amountOut, path, Call.caller, deadline, None)
-                switch(List.last(result))
-                    None => abort("No result returned")
-                    Some(x) => x
-
-    payable stateful entrypoint convertTokensToAe(targetedTokenAddress: address, amount: int): int =
-        let dexRouter : IAedexV2Router = Address.to_contract(state.dexRouterAddress)
-        let token : IAEX9Minimal = Address.to_contract(targetedTokenAddress)
-        token.transferUnderDAO(Call.caller, Contract.address, amount)
-        token.create_allowance(dexRouter.address, amount)
-        let amountOutorNot = List.last(dexRouter.get_amounts_out(amount, [token, dexRouter.wae_aex9()]))
-        switch(amountOutorNot) 
-            None => abort("No amount returned")
-            Some(amountOut) =>
-                let deadline = Chain.timestamp + 1000 * 15
-                let path = [token, dexRouter.wae_aex9()]
-                let dexRouter = Address.to_contract(state.dexRouterAddress)
-                let result = dexRouter.swap_exact_tokens_for_ae(amount, amountOut, path, Call.caller, deadline, None)
-                switch(List.last(result))
-                    None => abort("No result returned")
-                    Some(z) => z
-contract interface SwapAgent =
-  payable stateful entrypoint convertAeToTokens : (address, int) => int
-  payable stateful entrypoint convertTokensToAe : (address, int) => int
-  entrypoint checkPairExists : (address) => bool
-
+include "./DAOToken.aes"
+include "./Reputation.aes"
+include "./Swap.aes"
+// include "./DEXInterface.aes"
+include "String.aes"
 
 
 main contract NeuroDAO =
@@ -463,15 +73,15 @@ main contract NeuroDAO =
 
 
     stateful entrypoint init(name' : string, description' : string,
-                   tokenName : string, tokenSymbol : string, tokenDecimals: int, factoryAddress' : address,
+                   tokenName : string, tokenSymbol : string, tokenDecimals: int, founderAddress' : address,
                    layersNum' : int, inputNodesNum' : int, hiddenNodesNum' : int,
-                   outputNodesNum' : int, responsibilityOverlap' : bool, templateTokenAddress: address) = 
+                   outputNodesNum' : int, responsibilityOverlap' : bool, templateTokenAddress: address, investmentSwapService': address) = 
         let token : DAOToken = Address.to_contract(templateTokenAddress)
         let newToken = Chain.clone(ref=token, tokenName, tokenDecimals, tokenSymbol, Some(0)) : DAOToken
         { 
-          metaInfo = {owner = Call.caller, name = name', description = description', daoTokenAdress = newToken.address}, //
-          investmentSwapService = Call.caller, //
-          factoryAddress = factoryAddress',
+          metaInfo = {owner = founderAddress', name = name', description = description', daoTokenAdress = newToken.address}, //
+          investmentSwapService = investmentSwapService', //
+          factoryAddress = Call.caller,
           neuralNetwork = { layersNum = layersNum', inputNodesNum = inputNodesNum',hiddenNodesNum = hiddenNodesNum',outputNodesNum = outputNodesNum',responsibilityOverlap = responsibilityOverlap',maxNodesPerLayer = 10},
           stakers = {},
           inputNodes = {},
@@ -483,6 +93,17 @@ main contract NeuroDAO =
 
     entrypoint getProposals() = 
         state.proposals
+
+    entrypoint getInvestmentSwapServiceAddress() = 
+        state.investmentSwapService
+
+    entrypoint getTokenMetadata() = 
+        let token: DAOToken = Address.to_contract(state.metaInfo.daoTokenAdress)
+        token.meta_info()
+
+    entrypoint getTokenTotalSupply() = 
+        let token: DAOToken = Address.to_contract(state.metaInfo.daoTokenAdress)
+        token.total_supply()
 
     entrypoint getProposalByIndex(index: int) = 
         switch(Map.lookup(index, state.proposals))
@@ -523,8 +144,17 @@ main contract NeuroDAO =
     function lpNodeOnly() =
         require(Map.member(Call.caller, state.lpNodes), "NotLpNode")
 
-    function noResponsibilityOverlap() =
-        require(state.neuralNetwork.responsibilityOverlap == false, "NoResponsibilityOverlap")
+    function inputNodeSpareOnly() = 
+        require(Map.size(state.inputNodes) < state.neuralNetwork.inputNodesNum, "NoSpareInputNode")
+
+    function hiddenNodeSpareOnly() =
+        require(Map.size(state.hiddenNodes) < state.neuralNetwork.hiddenNodesNum, "NoSpareHiddenNode")
+    
+    function outputNodeSpareOnly() =
+        require(Map.size(state.outputNodes) < state.neuralNetwork.outputNodesNum, "NoSpareOutputNode")
+
+    function responsibilityOverlapOnly() =
+        require(state.neuralNetwork.responsibilityOverlap == true, "NoResponsibilityOverlap")
 
     //monetary requirements
     function sufficientFundOnly() = 
@@ -631,10 +261,11 @@ main contract NeuroDAO =
 
     //Join the DAO as different roles and initialize the weight
     stateful public entrypoint joinAsInputNode(node: address) : bool =
+        inputNodeSpareOnly()
         if(isInputNode(node))
-            false
+            abort("AlreadyInputNode")
         elif (isMember(node))
-            noResponsibilityOverlap()
+            responsibilityOverlapOnly()
             put(state{ inputNodes[node] = 10 })
             true
         else
@@ -642,10 +273,11 @@ main contract NeuroDAO =
             true
 
     stateful public entrypoint joinAsHiddenNode(node: address) : bool =
+        hiddenNodeSpareOnly()
         if(isHiddenNode(node))
-            false
+            abort("AlreadyHiddenNode")
         elif (isMember(node))
-            noResponsibilityOverlap()
+            responsibilityOverlapOnly()
             put(state{ hiddenNodes[node] = 10 })
             true
         else
@@ -653,10 +285,11 @@ main contract NeuroDAO =
             true
     
     stateful public entrypoint joinAsOutputNode(node: address) : bool =
+        outputNodeSpareOnly()
         if(isOutputNode(node))
-            false
+            abort("AlreadyOutputNode")
         elif (isMember(node))
-            noResponsibilityOverlap()
+            responsibilityOverlapOnly()
             put(state{ outputNodes[node] = 10 })
             true
         else
@@ -665,9 +298,8 @@ main contract NeuroDAO =
 
     stateful public entrypoint joinAsLpNode(node: address) : bool =
         if(isLpNode(node))
-            false
+            abort("AlreadyLpNode")
         elif (isMember(node))
-            noResponsibilityOverlap()
             put(state{ lpNodes[node] = 10 })
             true
         else
@@ -675,15 +307,15 @@ main contract NeuroDAO =
             true
 
     // Users get DAO token by staking AE
-    payable stateful public entrypoint stakeToGetDAOToken() : bool =
+    payable stateful public entrypoint stakeToGetDAOToken() : int =
         memberOnly()
         sufficientFundOnly()
         put(state{ stakers[Call.caller] = Call.value })
         let token: DAOToken = Address.to_contract(state.metaInfo.daoTokenAdress)
         token.mint(Call.caller, Call.value*100, protected = true)
-        true
+        Call.value*100
 
-    stateful public entrypoint burnToGetBackFund(amount: int) : bool = 
+    stateful public entrypoint burnToGetBackFund(amount: int) : int = 
         memberOnly()
         sufficientStakeOnly(amount)
         let token: DAOToken = Address.to_contract(state.metaInfo.daoTokenAdress)
@@ -691,10 +323,11 @@ main contract NeuroDAO =
             None => abort("No token")
             Some(x) => 
                 require(x>=amount, "NotEnoughDeposit")
-                token.transferUnderDAO(Call.caller,Contract.address,amount*100)
+                token.burnUnderDAO(Call.caller, amount*100)
                 Chain.spend(Call.caller, amount)
                 put(state{ stakers[Call.caller] @balanceBefore = balanceBefore - amount })
-                true
+                let b = x - amount*100
+                b
 
     record proposal = {
         name: string,
@@ -722,7 +355,7 @@ main contract NeuroDAO =
     stateful public entrypoint createProposal(_proposalName: string, _proposalDescription: string, _proposalTargetTokenAddress: address, _executeBuyAfter: int, _executeSellAfter: int, _decisionTimeInSeconds: int, _initialDeposit: int) : int =
         inputNodeOnly()
         sufficientDeposotOnly(_initialDeposit)
-        let proposalIndex = List.length(Map.to_list(state.proposals))
+        let proposalIndex = Map.size(state.proposals)
         let proposal: proposal = {
             name = _proposalName,
             description = _proposalDescription,
@@ -928,9 +561,9 @@ main contract NeuroDAO =
             (nodeVoteInfo) => 
                 switch(nodeVoteInfo)
                     (_addr, _lpFunds) => 
-                        put(state{ lpNodes[_addr] @prevWeight = prevWeight + _lostToken * _lpFunds/proposal.totalDeposit })
-                        token.transferUnderDAO(Contract.address, _addr, _lpFunds)
-                                )
+                        put(state{ lpNodes[_addr] @prevWeight = prevWeight - _lostToken * _lpFunds/proposal.totalDeposit })
+                        Chain.spend(_addr, _lpFunds * (proposal.totalFunds - _lostToken)/proposal.totalFunds)
+            )
 
     stateful function addReputationToNodes(proposalIndex: int, _earnedToken) = 
         let proposal = state.proposals[proposalIndex]
@@ -983,8 +616,8 @@ main contract NeuroDAO =
             (nodeVoteInfo) => 
                 switch(nodeVoteInfo)
                     (_addr, _lpFunds) => 
-                        put(state{ lpNodes[_addr] @prevWeight = prevWeight - _earnedToken * _lpFunds/proposal.totalDeposit })
-                        token.transferUnderDAO(Contract.address, _addr, _lpFunds)
+                        put(state{ lpNodes[_addr] @prevWeight = prevWeight + _earnedToken * _lpFunds/proposal.totalDeposit })
+                        Chain.spend(_addr, _lpFunds * (proposal.totalFunds + _earnedToken)/proposal.totalFunds)
             )
 
     
@@ -1101,12 +734,12 @@ main contract NeuroDAO =
         else 
             Executed
 
-    function investInSwapToken(_tokenAddress: address, _amount: int) : int =
-        let investmentSwapAgent: SwapAgent = Address.to_contract(state.investmentSwapService)
-        investmentSwapAgent.convertAeToTokens(_tokenAddress, _amount)
+    stateful function investInSwapToken(_tokenAddress: address, _amount: int) : int =
+        let investmentSwapAgent: Swap = Address.to_contract(state.investmentSwapService)
+        investmentSwapAgent.convertAeToTokens(_tokenAddress, value = _amount)
 
     function sellSwapToken(_tokenAddress: address) : int =
-        let investmentSwapAgent: SwapAgent = Address.to_contract(state.investmentSwapService)
+        let investmentSwapAgent: Swap = Address.to_contract(state.investmentSwapService)
         let token: DAOToken = Address.to_contract(_tokenAddress)
         let tokenBalance = token.balance(Contract.address)
         switch(tokenBalance)
@@ -1116,5 +749,5 @@ main contract NeuroDAO =
                 investmentSwapAgent.convertTokensToAe(_tokenAddress, balance)
 
     function checkTokenPairExists(_tokenAddress: address) : bool =
-        let investmentSwapAgent: SwapAgent = Address.to_contract(state.investmentSwapService)
+        let investmentSwapAgent: Swap = Address.to_contract(state.investmentSwapService)
         investmentSwapAgent.checkPairExists(_tokenAddress)

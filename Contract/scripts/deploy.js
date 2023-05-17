@@ -1,7 +1,8 @@
 const { AeSdk, Node, MemoryAccount, CompilerHttp, generateKeyPair } = require('@aeternity/aepp-sdk');
 const fs = require("fs");
+const { utils } = require('@aeternity/aeproject');
 
-const DAO_TEMPLATE = fs.readFileSync("../contracts/NeuroDAOFactory.aes", encoding = "utf-8")
+
 
 // const keypair = generateKeyPair()
 // console.log(`Secret key: ${keypair.secretKey}`)
@@ -10,9 +11,11 @@ const DAO_TEMPLATE = fs.readFileSync("../contracts/NeuroDAOFactory.aes", encodin
 const SECRET_KEY = '377c4911de2201ed5101427e8a5415213caa4dc81b5a9ac8ddcf9d17d015880840dc31129f90dcfaa4e7c936ade86cedcfd6c849152a9ebbdf27de9371ee8fef';
 //ak_VZmMpkgg8EqRgVqaMtQBZ8vTFzp65QTrwCdKu2zFH3JfyrNt7
 (async () => {
+    const file = 'NeuroDAOFactory'
     const node = new Node('https://testnet.aeternity.io') // ideally host your own node
     const account = new MemoryAccount(SECRET_KEY)
-
+    fileSystem = utils.getFilesystem(`../contracts/${file}.aes`)
+    sourceCode = utils.getContractContent(`../contracts/${file}.aes`)
     const aeSdk = new AeSdk({
         nodes: [{ name: 'testnet', instance: node }],
         accounts: [account],
@@ -20,7 +23,7 @@ const SECRET_KEY = '377c4911de2201ed5101427e8a5415213caa4dc81b5a9ac8ddcf9d17d015
     })
     await aeSdk.addAccount(account, { select: true });
     console.log("Compiling NeuroDAOFactory...");
-    const contract = await aeSdk.initializeContract({ sourceCode: DAO_TEMPLATE });
+    const contract = await aeSdk.initializeContract({ sourceCode, fileSystem });
     const aci = await contract._aci
     fs.writeFileSync('../acis/NeuroDAOFactory.json', JSON.stringify(aci));
     console.log("NeuroDAOFactory ACI saved")

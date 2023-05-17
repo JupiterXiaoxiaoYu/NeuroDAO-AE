@@ -3,7 +3,7 @@ const { utils } = require('@aeternity/aeproject');
 
 const EXAMPLE_CONTRACT_SOURCE = './contracts/NeuroDAOFactory.aes';
 
-describe('ExampleContract', () => {
+describe('NeuroDAOFactory', () => {
   let aeSdk;
   let contract;
 

@@ -1,4 +1,4 @@
-# NeuroDAOs
+﻿# NeuroDAOs
 
 <div style={{ textAlign: 'center' }}>
 <img width="50%" alt="neuro" src="https://user-images.githubusercontent.com/71649294/236729742-c2ed6e08-94c9-4d60-957c-6306f207db00.png">
@@ -125,6 +125,7 @@ NeuroDAO (Testnet): there are several contract addresses asscociated with the Ne
 ### Contract
 
 - Go into the Contract Folder, run ```npm i``` in your console, and make sure you have the AE project installed. For Windows users, you have to do this in WSL
+- Run ```aeproject env``` to start a local æternity network in dev-mode
 - Test the contracts with ```npm run test``` or ```aeproject test```
 - Compile the contracts with ```npm run compile```
 - Deploy: go into the scripts folder in Contract Folder, change the network/wallet parameter (note: the private key exposed there is just for the test purpose, don't publicly share this file if you have changed the account)  and run ```npm run deploy```
@@ -137,7 +138,7 @@ NeuroDAO (Testnet): there are several contract addresses asscociated with the Ne
 
 #### NeuroDAO.aes - userFlowTest.js
 
-22 fulfilled tests including joining DAO as different roles, staking ```$AE``` and getting DAO token, burning DAO Token and redeeming ```$AE```, Creating different proposals, voting on different proposals as different roles on different stages of the proposals, fund proposals, reject the proposal and refund the voters and LPs.
+25 fulfilled tests including joining DAO as different roles, staking ```$AE``` and getting DAO token, burning DAO Token and redeeming ```$AE```, Creating different proposals, voting on different proposals as different roles on different stages of the proposals, fund proposals, reject the proposal and refund the voters and LPs.
 
 Note:
 
