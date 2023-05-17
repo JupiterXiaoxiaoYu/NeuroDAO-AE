@@ -307,10 +307,11 @@ contract NeuroDAO =
     payable stateful public entrypoint stakeToGetDAOToken() : int =
         memberOnly()
         sufficientFundOnly()
-        put(state{ stakers[Call.caller] = Call.value })
+        let prevBalance = state.stakers[Call.caller=0]
+        put(state{ stakers[Call.caller=0] @balanceBefore = balanceBefore + Call.value })
         let token: DAOToken = Address.to_contract(state.metaInfo.daoTokenAdress)
         token.mint(Call.caller, Call.value*100, protected = true)
-        Call.value*100
+        prevBalance*100 + Call.value*100
 
     stateful public entrypoint burnToGetBackFund(amount: int) : int = 
         memberOnly()
@@ -322,7 +323,7 @@ contract NeuroDAO =
                 require(x>=amount, "NotEnoughDeposit")
                 token.burnUnderDAO(Call.caller, amount*100)
                 Chain.spend(Call.caller, amount)
-                put(state{ stakers[Call.caller] @balanceBefore = balanceBefore - amount })
+                put(state{ stakers[Call.caller=0] @balanceBefore = balanceBefore - amount })
                 x - amount*100
 
     record proposal = {
