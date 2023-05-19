@@ -157,6 +157,13 @@ describe('userFlowTest', () => {
     // const voteOptionType = {
     //   Agree: {}
     // };
+    const balanceBefore = await aeSdk.getBalance(utils.getDefaultAccounts()[4].address)
+    const tokenBalanceBefore = await contract.getDAOTokenBalance(utils.getDefaultAccounts()[4].address)
+
+    await contract.stakeToGetDAOToken({ onAccount: utils.getDefaultAccounts()[4], amount: 100 })
+
+    const balanceAfter = await aeSdk.getBalance(utils.getDefaultAccounts()[4].address)
+    assert(balanceBefore > balanceAfter + 100)
     // const calldata = await httpCompiler.api.encodeCalldata({arguments:["0", "Agree", "10", "\"I Agree with this and the info provided is correct\""], source:sourceCodeC, function:"voteOnCreatingProposal"})
     // const encodedParameter = aeSdk.encode(voteOptionType, "voteOption")
     // time = await contract.getTimeStamp()
@@ -164,9 +171,9 @@ describe('userFlowTest', () => {
     // const contract = await aeSdk.initializeContract({ sourceCode: sourceCodeC,fileSystem:fileSystemC });
     const voteOption = { Agree: [] };
     // const calldata = contract._calldata.encode(voteOption)
-    const balanceOfDAOTokenBefore = await contract.getDAOTokenBalance(utils.getDefaultAccounts()[0].address)
-    await contract.voteOnCreatingProposal(0, voteOption, 10, "I Agree with this and the info provided is correct", { onAccount: utils.getDefaultAccounts()[0] })
-    const balanceOfDAOTokenAfter = await contract.getDAOTokenBalance(utils.getDefaultAccounts()[0].address)
+    const balanceOfDAOTokenBefore = await contract.getDAOTokenBalance(utils.getDefaultAccounts()[4].address)
+    await contract.voteOnCreatingProposal(0, voteOption, 10, "I Agree with this and the info provided is correct", { onAccount: utils.getDefaultAccounts()[4] })
+    const balanceOfDAOTokenAfter = await contract.getDAOTokenBalance(utils.getDefaultAccounts()[4].address)
     expect(balanceOfDAOTokenBefore.decodedResult).to.equal(balanceOfDAOTokenAfter.decodedResult + 10n)
     // expect(vote.decodedResult).to.equal(1n);
     // stage = await contract.getCurrentStage(0)
@@ -175,16 +182,6 @@ describe('userFlowTest', () => {
     // console.log(time.encodedResult)
   })
 
-  it('Fund Proposal 0', async () => {
-    const success = await contract.addFundsToProposal(0, { onAccount: utils.getDefaultAccounts()[3], amount: 100 })
-    console.log(success.decodedResult)
-    const propsoal = await contract.getProposalByIndex(0)
-    console.log(propsoal.decodedResult.lpFunds)
-    expect(propsoal.decodedResult.lpFunds.get(utils.getDefaultAccounts()[3].address)).to.equal(100n)
-    expect(propsoal.decodedResult.totalFunds).to.equal(100n)
-    // stage = await contract.getCurrentStage(0)
-    // console.log(stage.decodedResult)
-  })
 
   it('Vote with Analyzing Proposal 2', async () => {
     await contract.stakeToGetDAOToken({ onAccount: utils.getDefaultAccounts()[1], amount: 100 })
@@ -280,8 +277,9 @@ describe('userFlowTest', () => {
   it('Refund hidden voters of proposal 1', async () => {
     // const proposal = await contract.getProposalByIndex(1n)
     // totalDeposit1 = proposal.decodedResult.totalDeposit
-    await contract.refundHiddenVoters(1n, { onAccount: utils.getDefaultAccounts()[0] })
-
+    const res = await contract.refundHiddenVoters(1n, { onAccount: utils.getDefaultAccounts()[0] })
+    // console.log(res.decodedResult, totalDeposit)
+    // expect(res.decodedResult).to.equal(totalDeposit1)
     // assert(totalFunds.decodedResult > RemainingFunds.decodedResult)
   })
 

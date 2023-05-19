@@ -407,7 +407,7 @@ contract NeuroDAO =
             put(state{ proposals[proposalIndex].inputVoters[Call.caller] = {vote = _vote, deposit = _deposit, info=_info} })
             true
         else
-            false
+            abort("AlreadyVoted")
     
 
     //Vote and analyze on the collected info by Hidden Nodes
@@ -420,13 +420,13 @@ contract NeuroDAO =
             setRejectStage(proposalIndex)
             abort("Proposal Rejected")
         let proposal = state.proposals[proposalIndex]
-        let currentVoterInfo = proposal.inputVoters[Call.caller = {vote = Agree, deposit=0, info=""}]
+        let currentVoterInfo = proposal.hiddenVoters[Call.caller = {vote = Agree, deposit=0, info=""}]
         let totalDepositBefore = proposal.totalDeposit
         let totalWeightBefore = proposal.totalWeight
         let weightBefore = state.hiddenNodes[Call.caller]
         if(currentVoterInfo=={vote = Agree, deposit=0, info=""})
             put(state{ proposals[proposalIndex] @ before = before{totalDeposit = totalDepositBefore + _deposit, totalWeight = totalWeightBefore +  weightBefore}})
-            put(state{ proposals[proposalIndex].inputVoters[Call.caller] = {vote = _vote, deposit = _deposit, info = _info}})
+            put(state{ proposals[proposalIndex].hiddenVoters[Call.caller] = {vote = _vote, deposit = _deposit, info = _info}})
             true
         else 
             abort("AlreadyVoted")
