@@ -2,10 +2,6 @@ const { AeSdk, Node, MemoryAccount, CompilerHttp } = require('@aeternity/aepp-sd
 const fs = require("fs");
 
 const { utils } = require('@aeternity/aeproject');
-
-
-
-
     // const DAOToken = fs.readFileSync("../contracts/DAOToken.aes", encoding = "utf-8");
     // const NeuroDAO = fs.readFileSync("../contracts/NeuroDAO.aes", encoding = "utf-8")
     // const NeuroDAOFactory = fs.readFileSync("../contracts/NeuroDAOFactory.aes", encoding = "utf-8");
