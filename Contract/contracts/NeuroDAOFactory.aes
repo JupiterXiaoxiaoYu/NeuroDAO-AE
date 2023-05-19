@@ -303,6 +303,20 @@ contract NeuroDAO =
             put(state{ lpNodes[node] = 10 })
             true
 
+    stateful public entrypoint leaveDAO() : bool =
+        if(isMember(Call.caller))
+            if(isInputNode(Call.caller))
+                put(state{inputNodes = Map.delete(Call.caller, state.inputNodes)})
+            if(isHiddenNode(Call.caller))
+                put(state{hiddenNodes = Map.delete(Call.caller, state.hiddenNodes)})
+            if(isOutputNode(Call.caller))
+                put(state{outputNodes = Map.delete(Call.caller, state.outputNodes)})
+            if(isLpNode(Call.caller))
+                put(state{lpNodes = Map.delete(Call.caller, state.lpNodes)})
+            true
+        else
+            abort("NotMember")
+
     // Users get DAO token by staking AE
     payable stateful public entrypoint stakeToGetDAOToken() : int =
         memberOnly()
@@ -401,6 +415,10 @@ contract NeuroDAO =
         hiddenNodeOnly()
         hiddenDecisionStageOnly(proposalIndex)
         sufficientDeposotOnly(_deposit)
+        let inputScore = calculateInputVoters(proposalIndex)
+        if(inputScore < 0)
+            setRejectStage(proposalIndex)
+            abort("Proposal Rejected")
         let proposal = state.proposals[proposalIndex]
         let currentVoterInfo = proposal.inputVoters[Call.caller = {vote = Agree, deposit=0, info=""}]
         let totalDepositBefore = proposal.totalDeposit
@@ -411,7 +429,7 @@ contract NeuroDAO =
             put(state{ proposals[proposalIndex].inputVoters[Call.caller] = {vote = _vote, deposit = _deposit, info = _info}})
             true
         else 
-            false
+            abort("AlreadyVoted")
         
 
     //Vote and decide the proposal by Output Nodes
@@ -419,6 +437,10 @@ contract NeuroDAO =
         outputNodeOnly()
         outputDecisionStageOnly(proposalIndex)
         sufficientDeposotOnly(_deposit)
+        let hiddenScore = calculateHiddenVoters(proposalIndex)
+        if(hiddenScore < 0)
+            setRejectStage(proposalIndex)
+            abort("Proposal Rejected")
         let proposal = state.proposals[proposalIndex]
         let currentVoterInfo = proposal.outputVoters[Call.caller= {vote = Agree, deposit=0}]
         let totalDepositBefore = proposal.totalDeposit
@@ -429,8 +451,15 @@ contract NeuroDAO =
             put(state{ proposals[proposalIndex].outputVoters[Call.caller] = {vote = _vote, deposit = _deposit}})
             true
         else 
+            abort("AlreadyVoted")
+
+    stateful public entrypoint checkBeforeExecuteBuy(proposalIndex): bool = 
+        let outputScore = calculateOutputVoters(proposalIndex)
+        if(outputScore < 0)
+            setRejectStage(proposalIndex)
             false
-        
+        else
+            true
 
     //Add funds by LP Nodes
     payable stateful public entrypoint addFundsToProposal(proposalIndex: int) : int =
@@ -438,6 +467,8 @@ contract NeuroDAO =
         activeProposalOnly(proposalIndex)
         beforeBuyExecutedOnly(proposalIndex)
         sufficientFundOnly()
+        if(state.proposals[proposalIndex].stage == Rejected)
+            abort("Proposal Rejected")
         let totalFundsBefore = state.proposals[proposalIndex].totalFunds
         let totalWeightBefore = state.proposals[proposalIndex].totalWeight
         let weightBefore = state.lpNodes[Call.caller]
@@ -490,6 +521,10 @@ contract NeuroDAO =
 
     //Execuete Investment
     stateful entrypoint executeProposalBuy(proposalIndex: int) = 
+        let outputScore = calculateOutputVoters(proposalIndex)
+        if(outputScore < 0)
+            setRejectStage(proposalIndex)
+            abort("Proposal Rejected")
         afterExecuteBuyTimeOnly(proposalIndex)
         let proposal = state.proposals[proposalIndex]
         investInSwapToken(proposal.targetedTokenAddress, proposal.totalFunds)
@@ -633,7 +668,7 @@ contract NeuroDAO =
                         put(state{proposals[proposalIndex] @ prev = prev{totalDeposit @ before = before - _voteInfo.deposit}})
                         put(state{proposals[proposalIndex].inputVoters[_addr] @ prev = prev{deposit = 0}})
             )
-        proposal.totalDeposit
+        state.proposals[proposalIndex].totalDeposit
 
     //Refund to hidden nodes if proposal is rejected
     stateful entrypoint refundHiddenVoters(proposalIndex: int): int =
@@ -650,7 +685,7 @@ contract NeuroDAO =
                         put(state{proposals[proposalIndex] @ prev = prev{totalDeposit @ before = before - _voteInfo.deposit}})
                         put(state{proposals[proposalIndex].hiddenVoters[_addr] @ prev = prev{deposit = 0}})
             )
-        proposal.totalDeposit
+        state.proposals[proposalIndex].totalDeposit
 
     //Refund to output nodes if proposal is rejected
     stateful entrypoint refundOutputVoters(proposalIndex: int): int =
@@ -667,7 +702,7 @@ contract NeuroDAO =
                         put(state{proposals[proposalIndex] @ prev = prev{totalDeposit @ before = before - _voteInfo.deposit}})
                         put(state{proposals[proposalIndex].outputVoters[_addr] @ prev = prev{deposit = 0}})
             )
-        proposal.totalDeposit
+        state.proposals[proposalIndex].totalDeposit
 
     //Refund to lp nodes if proposal is rejected
     stateful entrypoint refundLpNodes(proposalIndex: int): int =
@@ -683,13 +718,13 @@ contract NeuroDAO =
                         put(state{proposals[proposalIndex] @ prev = prev{totalFunds @ before = before - _lpFunds}})
                         put(state{proposals[proposalIndex].lpFunds[_addr] = 0})
             )
-        proposal.totalFunds
+        state.proposals[proposalIndex].totalFunds
 
     stateful function setRejectStage(proposalIndex) = 
         put(state{proposals[proposalIndex] @ prev = prev{stage = Rejected}})
     
     //Get current stage of the proposal
-    stateful entrypoint getCurrentStage(proposalIndex : int) : proposalStage =
+    entrypoint getCurrentStage(proposalIndex : int) : proposalStage =
         let currentTimestamp = Chain.timestamp
         let currentProposal = state.proposals[proposalIndex]
         if(currentProposal.stage == Rejected || currentProposal.stage == Executed)
@@ -697,33 +732,13 @@ contract NeuroDAO =
         elif (currentProposal.inputVotersDDL > currentTimestamp)
             InputDecision
         elif (currentProposal.hiddenVotersDDL > currentTimestamp)
-            let inputScore = calculateInputVoters(proposalIndex)
-            if(inputScore >= 0)
-                HiddenDecision
-            else
-                setRejectStage(proposalIndex)
-                Rejected
+            HiddenDecision
         elif (currentProposal.outputVotersDDL > currentTimestamp) 
-            let hiddenScore = calculateHiddenVoters(proposalIndex)
-            if(hiddenScore >= 0)
-                OutputDecision
-            else
-                setRejectStage(proposalIndex)
-                Rejected
+            OutputDecision
         elif (currentProposal.executeBuyAfter > currentTimestamp) 
-            let outputScore = calculateOutputVoters(proposalIndex)
-            if(outputScore >= 0)
-                WaitForBuyStart
-            else
-                setRejectStage(proposalIndex)
-                Rejected
+            WaitForBuyStart
         elif (currentProposal.executeBuyAfter < currentTimestamp && currentProposal.buyBalance == 0) 
-            let outputScore = calculateOutputVoters(proposalIndex)
-            if(outputScore >= 0)
-                ExecuteBuy
-            else
-                setRejectStage(proposalIndex)
-                Rejected
+            ExecuteBuy
         elif (currentProposal.buyBalance != 0 && currentProposal.executeSellAfter > currentTimestamp) 
             WaitForSellStart
         elif (currentProposal.executeSellAfter < currentTimestamp) 
