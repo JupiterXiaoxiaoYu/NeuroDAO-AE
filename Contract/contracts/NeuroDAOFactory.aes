@@ -199,6 +199,9 @@ contract NeuroDAO =
     function afterExecuteSellTimeOnly(proposalIndex: int) =
         require(state.proposals[proposalIndex].executeSellAfter =< Chain.timestamp, "NotReachTheSellTime")
 
+    function afterAllDecisionMadeOnly(proposalIndex: int) = 
+        require(state.proposals[proposalIndex].outputVotersDDL =< Chain.timestamp, "NotReachAllDecisionMade")
+
     //Membership checks
     public entrypoint isMember(node: address) : bool =
         Map.member(node, state.inputNodes) || Map.member(node, state.hiddenNodes) || Map.member(node, state.outputNodes) || Map.member(node, state.lpNodes)
@@ -454,12 +457,20 @@ contract NeuroDAO =
             abort("AlreadyVoted")
 
     stateful public entrypoint checkBeforeExecuteBuy(proposalIndex): bool = 
-        let outputScore = calculateOutputVoters(proposalIndex)
-        if(outputScore < 0)
+        afterAllDecisionMadeOnly(proposalIndex)
+        let currentTime = Chain.timestamp
+        if(currentTime > state.proposals[proposalIndex].executeBuyAfter + 1000*60*60*24 && state.proposals[proposalIndex].totalFunds==0)
             setRejectStage(proposalIndex)
             false
         else
-            true
+            let intputScore = calculateInputVoters(proposalIndex)
+            let hiddenScore = calculateHiddenVoters(proposalIndex)
+            let outputScore = calculateOutputVoters(proposalIndex)
+            if(outputScore < 0 || intputScore < 0 || hiddenScore < 0)
+                setRejectStage(proposalIndex)
+                false
+            else
+                true
 
     //Add funds by LP Nodes
     payable stateful public entrypoint addFundsToProposal(proposalIndex: int) : int =
@@ -521,14 +532,13 @@ contract NeuroDAO =
 
     //Execuete Investment
     stateful entrypoint executeProposalBuy(proposalIndex: int) = 
-        let outputScore = calculateOutputVoters(proposalIndex)
-        if(outputScore < 0)
-            setRejectStage(proposalIndex)
-            abort("Proposal Rejected")
         afterExecuteBuyTimeOnly(proposalIndex)
-        let proposal = state.proposals[proposalIndex]
-        investInSwapToken(proposal.targetedTokenAddress, proposal.totalFunds)
-        put(state{proposals[proposalIndex] @ before = before{sellBalance = proposal.totalFunds}})
+        if(checkBeforeExecuteBuy(proposalIndex)==true)
+            let proposal = state.proposals[proposalIndex]
+            investInSwapToken(proposal.targetedTokenAddress, proposal.totalFunds)
+            put(state{proposals[proposalIndex] @ before = before{sellBalance = proposal.totalFunds, totalFunds = 0, stage = WaitForSellStart}})
+        else
+            abort("Proposal Rejected")
 
     stateful entrypoint executeProposalSell(proposalIndex: int) = 
         afterExecuteSellTimeOnly(proposalIndex)
@@ -652,6 +662,11 @@ contract NeuroDAO =
                         Chain.spend(_addr, _lpFunds * (proposal.totalFunds + _earnedToken)/proposal.totalFunds)
             )
 
+    stateful entrypoint refundAll(proposalIndex) = 
+        refundInputVoters(proposalIndex)
+        refundHiddenVoters(proposalIndex)
+        refundOutputVoters(proposalIndex)
+        refundLpNodes(proposalIndex)
     
     //Refund to input nodes if proposal is rejected
     stateful entrypoint refundInputVoters(proposalIndex: int): int = 
@@ -748,7 +763,7 @@ contract NeuroDAO =
 
     stateful function investInSwapToken(_tokenAddress: address, _amount: int) : int =
         let investmentSwapAgent: Swap = Address.to_contract(state.investmentSwapService)
-        investmentSwapAgent.convertAeToTokens(_tokenAddress, value = _amount)
+        investmentSwapAgent.convertAeToTokens(_tokenAddress, value= _amount)
 
     function sellSwapToken(_tokenAddress: address) : int =
         let investmentSwapAgent: Swap = Address.to_contract(state.investmentSwapService)
